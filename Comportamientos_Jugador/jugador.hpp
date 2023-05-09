@@ -13,6 +13,7 @@ class ComportamientoJugador : public Comportamiento {
     }
     ComportamientoJugador(std::vector< std::vector< unsigned char> > mapaR) : Comportamiento(mapaR) {
       // Inicializar Variables de Estado
+      hayPlan = false;
     }
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
     ~ComportamientoJugador(){}
@@ -23,11 +24,8 @@ class ComportamientoJugador : public Comportamiento {
 
   private:
     // Declarar Variables de Estado
-
-
-
-
-
+    list<Action> plan; //Almacena elplan en ejecución
+    bool hayPlan; //Si verdad indica que se está siguiendo un plan.
 };
 
 #endif
