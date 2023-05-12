@@ -176,6 +176,226 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final, c
 	}
 }
 
+bool ComportamientoJugador::miraSonambulo(const stateN1 &st){
+	switch (st.jugador.brujula){
+		case norte:
+
+			break;
+		case noreste:
+
+			break;
+		case este:
+
+			break;
+		case sureste:
+
+			break;
+		case sur:
+
+			break;
+		case suroeste:
+
+			break;
+		case oeste:
+
+			break;
+		case noroeste:
+
+			break;
+		default:
+			break;
+	}
+}
+
+list<Action> AnchuraConSonambulo(const stateN0 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa){
+
+	nodeN0 current_node;
+	list<nodeN0> frontier;
+	set<nodeN0> explored;
+	list<Action> plan;
+	current_node.st = inicio;
+	bool SolutionFound = (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c);
+	frontier.push_back(current_node);
+
+	while (!frontier.empty() and !SolutionFound){
+		frontier.pop_front();
+		explored.insert(current_node);
+
+		// Generar hijo actFORWARD
+		nodeN0 child_forward = current_node;
+		child_forward.st = apply(actFORWARD, current_node.st, mapa);
+		if (child_forward.st.jugador.f == final.f and child_forward.st.jugador.c == final.c){
+			child_forward.secuencia.push_back(actFORWARD);
+			current_node = child_forward;
+			SolutionFound = true;
+		} else if (explored.find(child_forward) == explored.end()){
+			child_forward.secuencia.push_back(actFORWARD);
+			frontier.push_back(child_forward);
+		}
+
+		if (!SolutionFound){
+			// Generar hijo actTURN_L
+			nodeN0 child_turnl = current_node;
+			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			if (explored.find(child_turnl) == explored.end()){
+				child_turnl.secuencia.push_back(actTURN_L);
+				frontier.push_back(child_turnl);
+			}
+			// Generar hijo actTURN_R
+			nodeN0 child_turnr = current_node;
+			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+			if (explored.find(child_turnr) == explored.end()){
+				child_turnr.secuencia.push_back(actTURN_R);
+				frontier.push_back(child_turnr);
+			}
+		}
+
+		if (!SolutionFound and !frontier.empty()){
+			current_node = frontier.front();
+			while (!frontier.empty() and explored.find(current_node) != explored.end()){
+				frontier.pop_front();
+				if (!frontier.empty()){
+					current_node = frontier.front();
+				}
+			}
+		}
+	}
+
+	if (SolutionFound){
+		plan = current_node.secuencia;
+		return plan;
+	}
+}
+
+
+int ComportamientoJugador::gastosBateria(Action accion, Sensores sensores){
+	int bateria = sensores.bateria;
+	switch(accion){
+		case actFORWARD:
+			switch(sensores.terreno[2]){
+				case 'A':
+					if(bikini){
+						bateria -= 10;
+					} else {
+						bateria -= 100;
+					}
+					break;
+				case 'B':
+					if(zapatillas){
+						bateria -= 15;
+					} else {
+						bateria -= 50;
+					}
+					break;
+				case 'T':
+					bateria -= 2;
+					break;
+				default:
+					bateria -= 1;
+					break;
+			}
+			break;
+		case actSON_FORWARD:
+			switch(sensores.terreno[2]){
+				case 'A':
+					if(bikini){
+						bateria -= 10;
+					} else {
+						bateria -= 100;
+					}
+					break;
+				case 'B':
+					if(zapatillas){
+						bateria -= 15;
+					} else {
+						bateria -= 50;
+					}
+					break;
+				case 'T':
+					bateria -= 2;
+					break;
+				default:
+					bateria -= 1;
+					break;
+			}
+			break;
+		case actTURN_L or actTURN_R:
+			switch(sensores.terreno[2]){
+				case 'A':
+					if(bikini){
+						bateria -= 5;
+					} else {
+						bateria -= 25;
+					}
+					break;
+				case 'B':
+					if(zapatillas){
+						bateria -= 1;
+					} else {
+						bateria -= 5;
+					}
+					break;
+				case 'T':
+					bateria -= 2;
+					break;
+				default:
+					bateria -= 1;
+					break;
+			}
+			break;
+		case actSON_TURN_SL: // Aquí he intentado de hacer como en la línea 230 per me estaba dando un fallo diciendo que 'actTURN_BL ya estaba representado en la línea 230 
+			switch(sensores.terreno[2]){
+					case 'A':
+						if(bikini){
+							bateria -= 2;
+						} else {
+							bateria -= 7;
+						}
+						break;
+					case 'B':
+						if(zapatillas){
+							bateria -= 1;
+						} else {
+							bateria -= 3;
+						}
+						break;
+					case 'T':
+						bateria -= 1;
+						break;
+					default:
+						bateria -= 1;
+						break;
+			}
+			break;
+			case actSON_TURN_SR:
+				switch(sensores.terreno[2]){
+						case 'A':
+							if(bikini){
+								bateria -= 2;
+							} else {
+								bateria -= 7;
+							}
+							break;
+						case 'B':
+							if(zapatillas){
+								bateria -= 1;
+							} else {
+								bateria -= 3;
+							}
+							break;
+						case 'T':
+							bateria -= 1;
+							break;
+						default:
+							bateria -= 1;
+							break;
+				}
+				break;
+	}
+	return bateria;
+}
+
+
 // Este es el método principal que se piden en la practica.
 // Tiene como entrada la información de los sensores y devuelve la acción a realizar.
 // Para ver los distintos sensores mirar fichero "comportamiento.hpp"
@@ -183,46 +403,54 @@ Action ComportamientoJugador::think(Sensores sensores){
 	Action accion = actIDLE;
 	if(sensores.nivel != 4){
 
-	// Incluir aquí el comportamiento del agente jugador
-	if(!hayPlan){
-		// Invocar al método de búsqueda
-		cout << "Calculando un nuevo plan\n";
-		c_state.jugador.f = sensores.posF;
-		c_state.jugador.c = sensores.posC;
-		c_state.jugador.brujula = sensores.sentido;
-		c_state.sonambulo.f = sensores.SONposF;
-		c_state.sonambulo.c = sensores.SONposC;
-		c_state.sonambulo.brujula = sensores.SONsentido;
-		goal.f = sensores.destinoF;
-		goal.c = sensores.destinoC;
-		switch (sensores.nivel){
-			case 0:
-				plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
-				break;
-			case 1: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 1
-				cout << "Pendiente de implementar el nivel 1\n";
-				break;
-			case 2: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 2
-				cout << "Pendiente de implementar el nivel 1\n";
-				break;
-			case 3: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 3
-				cout << "Pendiente de implementar el nivel 1\n";
-				break;
+		// Incluir aquí el comportamiento del agente jugador
+		if(!hayPlan){
+			// Invocar al método de búsqueda
+			cout << "Calculando un nuevo plan\n";
+			c_state.jugador.f = sensores.posF;
+			c_state.jugador.c = sensores.posC;
+			c_state.jugador.brujula = sensores.sentido;
+			c_state.sonambulo.f = sensores.SONposF;
+			c_state.sonambulo.c = sensores.SONposC;
+			c_state.sonambulo.brujula = sensores.SONsentido;
+			goal.f = sensores.destinoF;
+			goal.c = sensores.destinoC;
+			switch (sensores.nivel){
+				case 0:
+					plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
+					break;
+				case 1: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 1
+					cout << "Pendiente de implementar el nivel 1\n";
+					break;
+				case 2: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 2
+					cout << "Pendiente de implementar el nivel 1\n";
+					break;
+				case 3: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 3
+					cout << "Pendiente de implementar el nivel 1\n";
+					break;
+			}
+			if (plan.size() > 0){
+				VisualizaPlan(c_state, plan);
+				hayPlan = true;
+			}
+
+			if(sensores.terreno[0] == 'D' and !zapatillas){
+				bikini = false;
+				zapatillas = true;
+			} else if(sensores.terreno[0] == 'K' and !bikini){
+				zapatillas = false;
+				bikini = true;
+	}
 		}
-		if (plan.size() > 0){
-			VisualizaPlan(c_state, plan);
-			hayPlan = true;
+		if(hayPlan and plan.size() > 0){
+			cout << "Ejecutando la siguiente acción del plan\n";
+			accion = plan.front();
+			plan.pop_front();
 		}
-	}
-	if(hayPlan and plan.size() > 0){
-		cout << "Ejecutando la siguiente acción del plan\n";
-		accion = plan.front();
-		plan.pop_front();
-	}
-	if(plan.size() == 0){
-		cout << "Se completó el plan \n";
-		hayPlan = false;
-	}
+		if(plan.size() == 0){
+			cout << "Se completó el plan \n";
+			hayPlan = false;
+		}
 	} else {
 		// Incluir aquí la solución al nivel 4
 	}

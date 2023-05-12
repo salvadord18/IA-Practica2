@@ -5,22 +5,12 @@
 
 #include <list>
 
-/*struct ubicacion{
-	int f;
-	int c;
-	Orientacion brujula;
-
-	bool operator==(const ubicacion &ub)const {
-		return (f == ub.f and c == ub.c and brujula == ub.brujula);
-	}
-};*/
-
 struct stateN0{
   ubicacion jugador;
   ubicacion sonambulo;
 
-  bool operator== (const stateN0 &x) const{
-    if (jugador == x.jugador and sonambulo.f == x.sonambulo.f and sonambulo.c == x.sonambulo.c){
+  bool operator== (const stateN0 &st) const{
+    if (jugador == st.jugador and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c){
       return true;
     } else {
       return false;
@@ -48,6 +38,27 @@ struct nodeN0{
   }
 };
 
+struct stateN1{
+  ubicacion jugador;
+  ubicacion sonambulo;
+
+  bool operator== (const stateN1 &st) const{
+    return (jugador.f == st.jugador.f and 
+    jugador.c == st.jugador.c and sonambulo.f == st.sonambulo.f and 
+    sonambulo.c == st.sonambulo.c and jugador.brujula == st.jugador.brujula and 
+    sonambulo.brujula == st.sonambulo.brujula);
+  }
+
+  bool operator<(const stateN1 &st) const{
+    return (jugador.f < st.jugador.f or 
+    (jugador.f == st.jugador.f and jugador.c < st.jugador.c) or 
+    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula < st.jugador.brujula) or 
+    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f < st.sonambulo.f) or 
+    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c < st.sonambulo.c) or 
+    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c and sonambulo.brujula < st.sonambulo.brujula));
+  }
+};
+
 class ComportamientoJugador : public Comportamiento {
   public:
     ComportamientoJugador(unsigned int size) : Comportamiento(size) {
@@ -56,6 +67,8 @@ class ComportamientoJugador : public Comportamiento {
     ComportamientoJugador(std::vector< std::vector< unsigned char> > mapaR) : Comportamiento(mapaR) {
       // Inicializar Variables de Estado
       hayPlan = false;
+      zapatillas = false;
+      bikini = false;
     }
     ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
     ~ComportamientoJugador(){}
@@ -63,6 +76,8 @@ class ComportamientoJugador : public Comportamiento {
     Action think(Sensores sensores);
     int interact(Action accion, int valor);
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
+    int gastosBateria(Action accion, Sensores sensores);
+    bool miraSonambulo(const stateN1 &st);
 
   private:
     // Declarar Variables de Estado
@@ -70,6 +85,9 @@ class ComportamientoJugador : public Comportamiento {
     bool hayPlan; //Si verdad indica que se está siguiendo un plan.
     stateN0 c_state;
     ubicacion goal;
+    bool zapatillas;
+    bool bikini;
+    stateN1 c_stateN1;
 };
 
 #endif
