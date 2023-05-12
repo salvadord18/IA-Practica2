@@ -177,41 +177,86 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final, c
 }
 
 bool ComportamientoJugador::miraSonambulo(const stateN1 &st){
+	int sonambuloF = st.sonambulo.f;
+	int sonambuloC = st.sonambulo.c;
+	int jugadorF = st.jugador.f;
+	int jugadorC = st.jugador.c;
+
+	int distanciaF = jugadorF - sonambuloF;
+	int distanciaC = jugadorC - sonambuloC;
+
 	switch (st.jugador.brujula){
 		case norte:
-
+			if(distanciaF >= -3 && distanciaF < 0 && abs(distanciaC) <= 3){
+				return true;
+			}		
 			break;
 		case noreste:
-
+			if(distanciaF >= -3 && distanciaF < 0 && distanciaC >= 0 && distanciaC <= 4){
+				return true;
+			}
 			break;
 		case este:
-
+			if(abs(distanciaF) <= 3 && distanciaC >= 0 && distanciaC < 4){
+				return true;
+			}
 			break;
 		case sureste:
-
+			if(abs(distanciaF) <= 3 && distanciaC >= 0 && distanciaC < 4){
+				return true;
+			}
 			break;
 		case sur:
-
+			if(distanciaF >= 0 && distanciaF <= 3 && abs(distanciaC) <= 3){
+				return true;
+			}
 			break;
 		case suroeste:
-
+			if(distanciaF > 0 && distanciaF <= 3 && distanciaC > -4){
+				return true;
+			}
 			break;
 		case oeste:
-
+			if(abs(distanciaF) <= 3 && distanciaC < 0 && distanciaC >= -3){
+				return true;
+			}
 			break;
 		case noroeste:
-
+			if(distanciaF >= -3 && distanciaF < 0 && distanciaC < 0 && distanciaC >= -3){
+				return true;
+			}
 			break;
 		default:
 			break;
 	}
 }
 
-list<Action> AnchuraConSonambulo(const stateN0 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa){
+stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned char>> &mapa){
+	stateN1 st_result = st;
+	ubicacion sig_ubicacion;
+	switch (a){
+	case actFORWARD: // si proxima casilla es transitable y no está ocupada por el sonámbulo
+		sig_ubicacion = NextCasilla(st.jugador);
+		if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f and sig_ubicacion.c == st.sonambulo.c)){
+			st_result.jugador = sig_ubicacion;
+		}
+		st_result.sonambulo = NextCasilla(st.sonambulo);
+		break;
+	case actTURN_L:
+		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 6) % 8);
+		break;
+	case actTURN_R:
+		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 2) % 8);
+		break;
+	}
+	return st_result;
+}
 
-	nodeN0 current_node;
-	list<nodeN0> frontier;
-	set<nodeN0> explored;
+list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa){
+
+	nodeN1 current_node;
+	list<nodeN1> frontier;
+	set<nodeN1> explored;
 	list<Action> plan;
 	current_node.st = inicio;
 	bool SolutionFound = (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c);
@@ -222,8 +267,8 @@ list<Action> AnchuraConSonambulo(const stateN0 &inicio, const ubicacion &final, 
 		explored.insert(current_node);
 
 		// Generar hijo actFORWARD
-		nodeN0 child_forward = current_node;
-		child_forward.st = apply(actFORWARD, current_node.st, mapa);
+		nodeN1 child_forward = current_node;
+		child_forward.st = applyN1(actFORWARD, current_node.st, mapa);
 		if (child_forward.st.jugador.f == final.f and child_forward.st.jugador.c == final.c){
 			child_forward.secuencia.push_back(actFORWARD);
 			current_node = child_forward;
@@ -235,18 +280,42 @@ list<Action> AnchuraConSonambulo(const stateN0 &inicio, const ubicacion &final, 
 
 		if (!SolutionFound){
 			// Generar hijo actTURN_L
-			nodeN0 child_turnl = current_node;
-			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			nodeN1 child_turnl = current_node;
+			child_turnl.st = applyN1(actTURN_L, current_node.st, mapa);
 			if (explored.find(child_turnl) == explored.end()){
 				child_turnl.secuencia.push_back(actTURN_L);
 				frontier.push_back(child_turnl);
 			}
 			// Generar hijo actTURN_R
-			nodeN0 child_turnr = current_node;
-			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+			nodeN1 child_turnr = current_node;
+			child_turnr.st = applyN1(actTURN_R, current_node.st, mapa);
 			if (explored.find(child_turnr) == explored.end()){
 				child_turnr.secuencia.push_back(actTURN_R);
 				frontier.push_back(child_turnr);
+			}
+
+			if(miraSonambulo(current_node.st)){
+				// Generar hijo actSON_FORWARD
+				nodeN1 child_son_forward = current_node;
+				child_son_forward.st = applyN1(actFORWARD, current_node.st, mapa);
+				if(explored.find(child_son_forward) == explored.end()){
+					child_son_forward.secuencia.push_back(actSON_FORWARD);
+					frontier.push_back(child_son_forward);
+				}
+				// Generar hijo actSON_TURN_SL
+				nodeN1 child_son_turnl = current_node;
+				child_son_turnl.st = applyN1(actSON_TURN_SL, current_node.st, mapa);
+				if(explored.find(child_son_turnl) == explored.end()){
+					child_son_turnl.secuencia.push_back(actSON_TURN_SL);
+					frontier.push_back(child_son_turnl);
+				}
+				// Generar hijo actSON_TURN_SR
+				nodeN1 child_son_turnr = current_node;
+				child_son_turnr.st = applyN1(actSON_TURN_SR, current_node.st, mapa);
+				if(explored.find(child_son_turnr) == explored.end()){
+					child_son_turnr.secuencia.push_back(actSON_TURN_SR);
+					frontier.push_back(child_son_turnr);
+				}
 			}
 		}
 

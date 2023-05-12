@@ -59,6 +59,32 @@ struct stateN1{
   }
 };
 
+struct nodeN1{
+  stateN1 st;
+  list<Action> secuencia;
+
+  bool operator == (const nodeN1 &n) const{
+    return (st == n.st);
+  }
+
+  bool operator < (const nodeN1 &n) const{
+    if (st.jugador.f < n.st.jugador.f)
+      return true;
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c < n.st.jugador.c)
+      return true;
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula < n.st.jugador.brujula)
+      return true;
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and st.sonambulo.f < n.st.sonambulo.f)
+      return true;
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c < n.st.sonambulo.c)
+      return true;
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c == n.st.sonambulo.c and st.sonambulo.brujula < n.st.sonambulo.brujula)
+      return true;
+    else
+      return false;
+  }
+};
+
 class ComportamientoJugador : public Comportamiento {
   public:
     ComportamientoJugador(unsigned int size) : Comportamiento(size) {
