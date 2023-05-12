@@ -176,7 +176,7 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final, c
 	}
 }
 
-bool ComportamientoJugador::miraSonambulo(const stateN1 &st){
+bool miraSonambulo(const stateN1 &st){
 	int sonambuloF = st.sonambulo.f;
 	int sonambuloC = st.sonambulo.c;
 	int jugadorF = st.jugador.f;
@@ -489,7 +489,7 @@ Action ComportamientoJugador::think(Sensores sensores){
 					plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
 					break;
 				case 1: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 1
-					cout << "Pendiente de implementar el nivel 1\n";
+					plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
 					break;
 				case 2: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 2
 					cout << "Pendiente de implementar el nivel 1\n";
