@@ -252,6 +252,38 @@ stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned
 	return st_result;
 }
 
+void ComportamientoJugador::VisualizaPlanSonambulo(const stateN1 &st, const list<Action> &plan){
+	AnularMatriz(mapaConPlan);
+	stateN1 cst = st;
+
+	auto it = plan.begin();
+	while (it != plan.end()){
+		switch (*it){
+		case actFORWARD:
+			cst.jugador = NextCasilla(cst.jugador);
+			mapaConPlan[cst.jugador.f][cst.jugador.c] = 1;
+			break;
+		case actTURN_R:
+			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 2) % 8);
+			break;
+		case actTURN_L:
+			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 6) % 8);
+			break;
+		case actSON_FORWARD:
+			cst.sonambulo = NextCasilla(cst.sonambulo);
+			mapaConPlan[cst.sonambulo.f][cst.sonambulo.c] = 2;
+			break;
+		case actSON_TURN_SR:
+			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 1) % 8);
+			break;
+		case actSON_TURN_SL:
+			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 7) % 8);
+			break;
+		}
+		it++;
+	}
+}
+
 list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa){
 
 	nodeN1 current_node;
