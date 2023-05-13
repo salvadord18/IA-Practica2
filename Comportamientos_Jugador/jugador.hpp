@@ -107,7 +107,7 @@ class ComportamientoJugador : public Comportamiento {
 
   private:
     // Declarar Variables de Estado
-    list<Action> plan; //Almacena elplan en ejecución
+    list<Action> plan; //Almacena el plan en ejecución
     bool hayPlan; //Si verdad indica que se está siguiendo un plan.
     stateN0 c_state;
     ubicacion goal;

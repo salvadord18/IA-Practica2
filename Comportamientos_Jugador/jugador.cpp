@@ -229,6 +229,7 @@ bool miraSonambulo(const stateN1 &st){
 		default:
 			break;
 	}
+	return false;
 }
 
 stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned char>> &mapa){
@@ -298,38 +299,12 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 		frontier.pop_front();
 		explored.insert(current_node);
 
-		// Generar hijo actFORWARD
-		nodeN1 child_forward = current_node;
-		child_forward.st = applyN1(actFORWARD, current_node.st, mapa);
-		if (child_forward.st.jugador.f == final.f and child_forward.st.jugador.c == final.c){
-			child_forward.secuencia.push_back(actFORWARD);
-			current_node = child_forward;
-			SolutionFound = true;
-		} else if (explored.find(child_forward) == explored.end()){
-			child_forward.secuencia.push_back(actFORWARD);
-			frontier.push_back(child_forward);
-		}
-
 		if (!SolutionFound){
-			// Generar hijo actTURN_L
-			nodeN1 child_turnl = current_node;
-			child_turnl.st = applyN1(actTURN_L, current_node.st, mapa);
-			if (explored.find(child_turnl) == explored.end()){
-				child_turnl.secuencia.push_back(actTURN_L);
-				frontier.push_back(child_turnl);
-			}
-			// Generar hijo actTURN_R
-			nodeN1 child_turnr = current_node;
-			child_turnr.st = applyN1(actTURN_R, current_node.st, mapa);
-			if (explored.find(child_turnr) == explored.end()){
-				child_turnr.secuencia.push_back(actTURN_R);
-				frontier.push_back(child_turnr);
-			}
 
 			if(miraSonambulo(current_node.st)){
 				// Generar hijo actSON_FORWARD
 				nodeN1 child_son_forward = current_node;
-				child_son_forward.st = applyN1(actFORWARD, current_node.st, mapa);
+				child_son_forward.st = applyN1(actSON_FORWARD, current_node.st, mapa);
 				if(explored.find(child_son_forward) == explored.end()){
 					child_son_forward.secuencia.push_back(actSON_FORWARD);
 					frontier.push_back(child_son_forward);
@@ -347,6 +322,34 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 				if(explored.find(child_son_turnr) == explored.end()){
 					child_son_turnr.secuencia.push_back(actSON_TURN_SR);
 					frontier.push_back(child_son_turnr);
+				}
+			} else {
+
+				// Generar hijo actFORWARD
+				nodeN1 child_forward = current_node;
+				child_forward.st = applyN1(actFORWARD, current_node.st, mapa);
+				if (child_forward.st.jugador.f == final.f and child_forward.st.jugador.c == final.c){
+					child_forward.secuencia.push_back(actFORWARD);
+					current_node = child_forward;
+					SolutionFound = true;
+				} else if (explored.find(child_forward) == explored.end()){
+					child_forward.secuencia.push_back(actFORWARD);
+					frontier.push_back(child_forward);
+				}
+
+				// Generar hijo actTURN_L
+				nodeN1 child_turnl = current_node;
+				child_turnl.st = applyN1(actTURN_L, current_node.st, mapa);
+				if (explored.find(child_turnl) == explored.end()){
+					child_turnl.secuencia.push_back(actTURN_L);
+					frontier.push_back(child_turnl);
+				}
+				// Generar hijo actTURN_R
+				nodeN1 child_turnr = current_node;
+				child_turnr.st = applyN1(actTURN_R, current_node.st, mapa);
+				if (explored.find(child_turnr) == explored.end()){
+					child_turnr.secuencia.push_back(actTURN_R);
+					frontier.push_back(child_turnr);
 				}
 			}
 		}
@@ -521,7 +524,7 @@ Action ComportamientoJugador::think(Sensores sensores){
 					plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
 					break;
 				case 1: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 1
-					plan = AnchuraSoloJugador(c_state, goal, mapaResultado);
+					plan = AnchuraConSonambulo(c_stateN1, goal, mapaResultado);
 					break;
 				case 2: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 2
 					cout << "Pendiente de implementar el nivel 1\n";
