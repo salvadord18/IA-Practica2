@@ -243,7 +243,7 @@ bool miraSonambulo(const stateN1 &st){
 		default:
 			break;
 	}
-	return false;
+	return miraSonambulo;
 }
 
 stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned char>> &mapa){
@@ -274,7 +274,8 @@ stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned
 		case actSON_TURN_SR:
 			st_result.sonambulo.brujula = static_cast<Orientacion>((st_result.sonambulo.brujula + 1) % 8);
 			break;
-	}
+	}	
+
 	return st_result;
 }
 
@@ -308,6 +309,8 @@ void ComportamientoJugador::VisualizaPlanN1(const stateN1 &st, const list<Action
 		}
 		it++;
 	}
+	std::cout << "Tamaño del plan: " << plan.size() << std::endl;
+
 }
 
 list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa){
@@ -353,8 +356,6 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 					child_son_turnr.secuencia.push_back(actSON_TURN_SR);
 					frontier.push_back(child_son_turnr);
 				}
-
-				current_node = child_son_forward;
 			}
 
 			if(!SolutionFound){
