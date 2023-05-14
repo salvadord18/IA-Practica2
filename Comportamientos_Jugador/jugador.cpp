@@ -5,6 +5,7 @@
 #include <cmath>
 #include <set>
 #include <stack>
+#include <queue>
 
 //** Devuelve si una ubicación en el mapa es transitable para el agente */
 bool CasillaTransitable(const ubicacion &x, const vector<vector<unsigned char>> &mapa){
@@ -246,7 +247,7 @@ bool miraSonambulo(const stateN1 &st){
 	return miraSonambulo;
 }
 
-stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned char>> &mapa){
+stateN1 apply(const Action &a, const stateN1 &st, const vector<vector<unsigned char>> &mapa){
 	stateN1 st_result = st;
 	ubicacion sig_ubicacion;
 	switch (a){
@@ -332,7 +333,7 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 			if(miraSonambulo(current_node.st)){
 				// Generar hijo actSON_FORWARD
 				nodeN1 child_son_forward = current_node;
-				child_son_forward.st = applyN1(actSON_FORWARD, current_node.st, mapa);
+				child_son_forward.st = apply(actSON_FORWARD, current_node.st, mapa);
 				if (child_son_forward.st.sonambulo.f == final.f and child_son_forward.st.sonambulo.c == final.c){
 					child_son_forward.secuencia.push_back(actSON_FORWARD);
 					current_node = child_son_forward;
@@ -344,14 +345,14 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 
 				// Generar hijo actSON_TURN_SL
 				nodeN1 child_son_turnl = current_node;
-				child_son_turnl.st = applyN1(actSON_TURN_SL, current_node.st, mapa);
+				child_son_turnl.st = apply(actSON_TURN_SL, current_node.st, mapa);
 				if(explored.find(child_son_turnl) == explored.end()){
 					child_son_turnl.secuencia.push_back(actSON_TURN_SL);
 					frontier.push_back(child_son_turnl);
 				}
 				// Generar hijo actSON_TURN_SR
 				nodeN1 child_son_turnr = current_node;
-				child_son_turnr.st = applyN1(actSON_TURN_SR, current_node.st, mapa);
+				child_son_turnr.st = apply(actSON_TURN_SR, current_node.st, mapa);
 				if(explored.find(child_son_turnr) == explored.end()){
 					child_son_turnr.secuencia.push_back(actSON_TURN_SR);
 					frontier.push_back(child_son_turnr);
@@ -362,7 +363,7 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 
 				// Generar hijo actFORWARD
 				nodeN1 child_forward = current_node;
-				child_forward.st = applyN1(actFORWARD, current_node.st, mapa);
+				child_forward.st = apply(actFORWARD, current_node.st, mapa);
 				if (explored.find(child_forward) == explored.end()){
 					child_forward.secuencia.push_back(actFORWARD);
 					frontier.push_back(child_forward);
@@ -370,14 +371,14 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 
 				// Generar hijo actTURN_L
 				nodeN1 child_turnl = current_node;
-				child_turnl.st = applyN1(actTURN_L, current_node.st, mapa);
+				child_turnl.st = apply(actTURN_L, current_node.st, mapa);
 				if (explored.find(child_turnl) == explored.end()){
 					child_turnl.secuencia.push_back(actTURN_L);
 					frontier.push_back(child_turnl);
 				}
 				// Generar hijo actTURN_R
 				nodeN1 child_turnr = current_node;
-				child_turnr.st = applyN1(actTURN_R, current_node.st, mapa);
+				child_turnr.st = apply(actTURN_R, current_node.st, mapa);
 				if (explored.find(child_turnr) == explored.end()){
 					child_turnr.secuencia.push_back(actTURN_R);
 					frontier.push_back(child_turnr);
@@ -402,132 +403,221 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 	}
 }
 
+stateN2 apply(const Action &a, const stateN2 &st, const vector<vector<unsigned char>> &mapa){
+	stateN2 st_result = st;
+	ubicacion sig_ubicacion;
+	switch (a){
+	case actFORWARD: // si proxima casilla es transitable y no está ocupada por el sonámbulo
+		sig_ubicacion = NextCasilla(st.jugador);
+		if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f and sig_ubicacion.c == st.sonambulo.c)){
+			st_result.jugador = sig_ubicacion;
+		}
+		break;
+	case actTURN_L:
+		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 6) % 8);
+		break;
+	case actTURN_R:
+		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 2) % 8);
+		break;
+	}
+	return st_result;
+}
 
-int ComportamientoJugador::gastosBateria(Action accion, Sensores sensores){
-	int bateria = sensores.bateria;
+int ComportamientoJugador::gastosBateria(const stateN2 &st, Action accion){
+	int sig_f = st.jugador.f;
+	int sig_c = st.jugador.c;
+
+	int coste = 0;
+	char casilla = mapaResultado[sig_f][sig_c];
+
 	switch(accion){
 		case actFORWARD:
-			switch(sensores.terreno[2]){
+			switch(casilla){
 				case 'A':
 					if(bikini){
-						bateria -= 10;
+						coste = 10;
 					} else {
-						bateria -= 100;
+						coste = 100;
 					}
 					break;
 				case 'B':
 					if(zapatillas){
-						bateria -= 15;
+						coste = 15;
 					} else {
-						bateria -= 50;
+						coste = 50;
 					}
 					break;
 				case 'T':
-					bateria -= 2;
+					coste = 2;
 					break;
 				default:
-					bateria -= 1;
+					coste = 1;
 					break;
 			}
 			break;
 		case actSON_FORWARD:
-			switch(sensores.terreno[2]){
+			switch(casilla){
 				case 'A':
 					if(bikini){
-						bateria -= 10;
+						coste = 10;
 					} else {
-						bateria -= 100;
+						coste = 100;
 					}
 					break;
 				case 'B':
 					if(zapatillas){
-						bateria -= 15;
+						coste = 15;
 					} else {
-						bateria -= 50;
+						coste = 50;
 					}
 					break;
 				case 'T':
-					bateria -= 2;
+					coste = 2;
 					break;
 				default:
-					bateria -= 1;
+					coste = 1;
 					break;
 			}
 			break;
 		case actTURN_L or actTURN_R:
-			switch(sensores.terreno[2]){
+			switch(casilla){
 				case 'A':
 					if(bikini){
-						bateria -= 5;
+						coste = 5;
 					} else {
-						bateria -= 25;
+						coste = 25;
 					}
 					break;
 				case 'B':
 					if(zapatillas){
-						bateria -= 1;
+						coste = 1;
 					} else {
-						bateria -= 5;
+						coste = 5;
 					}
 					break;
 				case 'T':
-					bateria -= 2;
+					coste = 2;
 					break;
 				default:
-					bateria -= 1;
+					coste = 1;
 					break;
 			}
 			break;
 		case actSON_TURN_SL: // Aquí he intentado de hacer como en la línea 230 per me estaba dando un fallo diciendo que 'actTURN_BL ya estaba representado en la línea 230 
-			switch(sensores.terreno[2]){
+			switch(casilla){
 					case 'A':
 						if(bikini){
-							bateria -= 2;
+							coste = 2;
 						} else {
-							bateria -= 7;
+							coste = 7;
 						}
 						break;
 					case 'B':
 						if(zapatillas){
-							bateria -= 1;
+							coste = 1;
 						} else {
-							bateria -= 3;
+							coste = 3;
 						}
 						break;
 					case 'T':
-						bateria -= 1;
+						coste = 1;
 						break;
 					default:
-						bateria -= 1;
+						coste = 1;
 						break;
 			}
 			break;
 			case actSON_TURN_SR:
-				switch(sensores.terreno[2]){
+				switch(casilla){
 						case 'A':
 							if(bikini){
-								bateria -= 2;
+								coste = 2;
 							} else {
-								bateria -= 7;
+								coste = 7;
 							}
 							break;
 						case 'B':
 							if(zapatillas){
-								bateria -= 1;
+								coste = 1;
 							} else {
-								bateria -= 3;
+								coste = 3;
 							}
 							break;
 						case 'T':
-							bateria -= 1;
+							coste = 1;
 							break;
 						default:
-							bateria -= 1;
+							coste = 1;
 							break;
 				}
 				break;
 	}
-	return bateria;
+	return coste;
+}
+
+list <Action> CostoUniforme(const stateN2 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa){
+
+	nodeN2 current_node;
+	priority_queue<nodeN2> frontier;
+	set<nodeN2> explored;
+	list<Action> plan;
+	current_node.st = inicio;
+	current_node.distancia = 0;
+	bool SolutionFound = (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c);
+	frontier.push(current_node);
+
+	while (!frontier.empty() and !SolutionFound){
+		current_node = frontier.top();
+		frontier.pop();
+		explored.insert(current_node);
+
+		// Generar hijo actFORWARD
+		nodeN2 child_forward = current_node;
+		child_forward.st = apply(actFORWARD, current_node.st, mapa);
+		if (child_forward.st.jugador.f == final.f and child_forward.st.jugador.c == final.c){
+			child_forward.secuencia.push_back(actFORWARD);
+			current_node = child_forward;
+			SolutionFound = true;
+		} else if (explored.find(child_forward) == explored.end()){
+			child_forward.secuencia.push_back(actFORWARD);
+			child_forward.distancia += gastosBateria(current_node.st, actFORWARD);
+			frontier.push(child_forward);
+		}
+
+		if (!SolutionFound){
+			// Generar hijo actTURN_L
+			nodeN2 child_turnl = current_node;
+			child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+			if (explored.find(child_turnl) == explored.end()){
+				child_turnl.secuencia.push_back(actTURN_L);
+				child_turnl.distancia += gastosBateria(current_node.st, actTURN_L);
+				frontier.push(child_turnl);
+			}
+			// Generar hijo actTURN_R
+			nodeN2 child_turnr = current_node;
+			child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+			if (explored.find(child_turnr) == explored.end()){
+				child_turnr.secuencia.push_back(actTURN_R);
+				child_turnr.distancia += gastosBateria(current_node.st, actTURN_R);
+				frontier.push(child_turnr);
+			}
+		}
+
+		/*if (!SolutionFound and !frontier.empty()){
+			current_node = frontier.front();
+			while (!frontier.empty() and explored.find(current_node) != explored.end()){
+				frontier.pop_front();
+				if (!frontier.empty()){
+					current_node = frontier.front();
+				}
+			}
+		}*/
+	}
+
+	if (SolutionFound){
+		plan = current_node.secuencia;
+		return plan;
+	}
 }
 
 

@@ -88,6 +88,34 @@ struct nodeN1{
   }
 };
 
+struct stateN2{
+  ubicacion jugador;
+  ubicacion sonambulo;
+
+  int coste = 0;
+  bool bikini = false;
+  bool zapatillas = false;
+
+  bool operator()(const stateN2 &st, const stateN2 &st2) const{
+    if((st.jugador.f > st2.jugador.f) or (st.jugador.f == st2.jugador.f and st.jugador.c == st2.jugador.c and st.jugador.brujula > st2.jugador.brujula) or
+    (st.jugador.f == st2.jugador.f and st.jugador.c == st2.jugador.c and st.jugador.brujula == st2.jugador.brujula and st.bikini > st2.bikini) or
+    (st.jugador.f == st2.jugador.f and st.jugador.c == st2.jugador.c and st.jugador.brujula == st2.jugador.brujula and st.bikini == st2.bikini and st.zapatillas > st2.zapatillas))
+      return true;
+    else
+      return false;
+  }
+};
+
+struct nodeN2{
+  stateN2 st;
+  list<Action> secuencia;
+  int distancia;
+
+  bool operator()(const nodeN2 &n, const nodeN2 &n2) const{
+    return (n.distancia > n2.distancia);
+  }
+};
+
 class ComportamientoJugador : public Comportamiento {
   public:
     ComportamientoJugador(unsigned int size) : Comportamiento(size) {
@@ -105,7 +133,7 @@ class ComportamientoJugador : public Comportamiento {
     Action think(Sensores sensores);
     int interact(Action accion, int valor);
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
-    int gastosBateria(Action accion, Sensores sensores);
+    int gastosBateria(const stateN2 &st, Action accion);
     void VisualizaPlanN1(const stateN1 &st, const list<Action> &plan);
 
   private:
