@@ -177,53 +177,67 @@ list<Action> AnchuraSoloJugador(const stateN0 &inicio, const ubicacion &final, c
 }
 
 bool miraSonambulo(const stateN1 &st){
-	int sonambuloF = st.sonambulo.f;
-	int sonambuloC = st.sonambulo.c;
-	int jugadorF = st.jugador.f;
-	int jugadorC = st.jugador.c;
+	ubicacion jugador = st.jugador;
+	ubicacion sonambulo = st.sonambulo;
+	stateN1 cst = st;
 
-	int distanciaF = jugadorF - sonambuloF;
-	int distanciaC = jugadorC - sonambuloC;
+	Orientacion orientacionJugador = jugador.brujula;
+	int fil = jugador.f;
+	int col = jugador.c;
 
-	switch (st.jugador.brujula){
+	bool miraSonambulo = false;
+
+	switch (orientacionJugador){
 		case norte:
-			if(distanciaF >= -3 && distanciaF < 0 && abs(distanciaC) <= 3){
-				return true;
-			}		
-			break;
-		case noreste:
-			if(distanciaF >= -3 && distanciaF < 0 && distanciaC >= 0 && distanciaC <= 4){
-				return true;
+			if((sonambulo.c == col) and ((fil - sonambulo.f) <= 3) and ((fil - sonambulo.f) > 0)){
+				miraSonambulo = true;
+			} else if (((sonambulo.c == col - 1) or (sonambulo.c == col + 1)) and ((fil - sonambulo.f) <= 3) and ((fil - sonambulo.f) >= 1)){
+				miraSonambulo = true;
+			} else if (((sonambulo.c == col - 2) or (sonambulo.c == col + 2)) and ((fil - sonambulo.f) <= 3) and ((fil - sonambulo.f) >= 2)){
+				miraSonambulo = true;
+			} else if (((sonambulo.c == col - 3) or (sonambulo.c == col + 3)) and ((fil - sonambulo.f) == 3)){
+				miraSonambulo = true;
+			} else {
+				miraSonambulo = false;
 			}
 			break;
 		case este:
-			if(abs(distanciaF) <= 3 && distanciaC >= 0 && distanciaC < 4){
-				return true;
-			}
-			break;
-		case sureste:
-			if(abs(distanciaF) <= 3 && distanciaC >= 0 && distanciaC < 4){
-				return true;
+			if((sonambulo.f == fil) and ((sonambulo.c - col) <= 3) and ((sonambulo.c - col) > 0)){
+				miraSonambulo = true;
+			} else if (((sonambulo.f == fil - 1) or (sonambulo.f == fil + 1)) and ((sonambulo.c - col) <= 3) and ((sonambulo.c - col) >= 1)){
+				miraSonambulo = true;
+			} else if (((sonambulo.f == fil - 2) or (sonambulo.f == fil + 2)) and ((sonambulo.c - col) <= 3) and ((sonambulo.c - col) >= 2)){
+				miraSonambulo = true;
+			} else if (((sonambulo.f == fil - 3) or (sonambulo.f == fil + 3)) and ((sonambulo.c - col) == 3)){
+				miraSonambulo = true;
+			} else {
+				miraSonambulo = false;
 			}
 			break;
 		case sur:
-			if(distanciaF >= 0 && distanciaF <= 3 && abs(distanciaC) <= 3){
-				return true;
-			}
-			break;
-		case suroeste:
-			if(distanciaF > 0 && distanciaF <= 3 && distanciaC > -4){
-				return true;
+			if((sonambulo.c == col) and ((sonambulo.f - fil) <= 3) and ((sonambulo.f - fil) > 0)){
+				miraSonambulo = true;
+			} else if (((sonambulo.c == col - 1) or (sonambulo.c == col + 1)) and ((sonambulo.f - fil) <= 3) and ((sonambulo.f - fil) >= 1)){
+				miraSonambulo = true;
+			} else if (((sonambulo.c == col - 2) or (sonambulo.c == col + 2)) and ((sonambulo.f - fil) <= 3) and ((sonambulo.f - fil) >= 2)){
+				miraSonambulo = true;
+			} else if (((sonambulo.c == col - 3) or (sonambulo.c == col + 3)) and ((sonambulo.f - fil) == 3)){
+				miraSonambulo = true;
+			} else {
+				miraSonambulo = false;
 			}
 			break;
 		case oeste:
-			if(abs(distanciaF) <= 3 && distanciaC < 0 && distanciaC >= -3){
-				return true;
-			}
-			break;
-		case noroeste:
-			if(distanciaF >= -3 && distanciaF < 0 && distanciaC < 0 && distanciaC >= -3){
-				return true;
+			if((sonambulo.f == fil) and ((col - sonambulo.c) <= 3) and ((col - sonambulo.c) > 0)){
+				miraSonambulo = true;
+			} else if (((sonambulo.f == fil - 1) or (sonambulo.f == fil + 1)) and ((col - sonambulo.c) <= 3) and ((col - sonambulo.c) >= 1)){
+				miraSonambulo = true;
+			} else if (((sonambulo.f == fil - 2) or (sonambulo.f == fil + 2)) and ((col - sonambulo.c) <= 3) and ((col - sonambulo.c) >= 2)){
+				miraSonambulo = true;
+			} else if (((sonambulo.f == fil - 3) or (sonambulo.f == fil + 3)) and ((col - sonambulo.c) == 3)){
+				miraSonambulo = true;
+			} else {
+				miraSonambulo = false;
 			}
 			break;
 		default:
@@ -236,24 +250,35 @@ stateN1 applyN1(const Action &a, const stateN1 &st, const vector<vector<unsigned
 	stateN1 st_result = st;
 	ubicacion sig_ubicacion;
 	switch (a){
-	case actFORWARD: // si proxima casilla es transitable y no está ocupada por el sonámbulo
-		sig_ubicacion = NextCasilla(st.jugador);
-		if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f and sig_ubicacion.c == st.sonambulo.c)){
-			st_result.jugador = sig_ubicacion;
-		}
-		st_result.sonambulo = NextCasilla(st.sonambulo);
-		break;
-	case actTURN_L:
-		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 6) % 8);
-		break;
-	case actTURN_R:
-		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 2) % 8);
-		break;
+		case actFORWARD: // si proxima casilla es transitable y no está ocupada por el sonámbulo
+			sig_ubicacion = NextCasilla(st.jugador);
+			if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f and sig_ubicacion.c == st.sonambulo.c)){
+				st_result.jugador = sig_ubicacion;
+			}
+			break;
+		case actTURN_L:
+			st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 6) % 8);
+			break;
+		case actTURN_R:
+			st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 2) % 8);
+			break;
+		case actSON_FORWARD:
+			sig_ubicacion = NextCasilla(st.sonambulo);
+			if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.jugador.f and sig_ubicacion.c == st.jugador.c)){
+				st_result.sonambulo = sig_ubicacion;
+			}
+			break;
+		case actSON_TURN_SL:
+			st_result.sonambulo.brujula = static_cast<Orientacion>((st_result.sonambulo.brujula + 7) % 8);
+			break;
+		case actSON_TURN_SR:
+			st_result.sonambulo.brujula = static_cast<Orientacion>((st_result.sonambulo.brujula + 1) % 8);
+			break;
 	}
 	return st_result;
 }
 
-void ComportamientoJugador::VisualizaPlanSonambulo(const stateN1 &st, const list<Action> &plan){
+void ComportamientoJugador::VisualizaPlanN1(const stateN1 &st, const list<Action> &plan){
 	AnularMatriz(mapaConPlan);
 	stateN1 cst = st;
 
@@ -292,7 +317,7 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 	set<nodeN1> explored;
 	list<Action> plan;
 	current_node.st = inicio;
-	bool SolutionFound = (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c);
+	bool SolutionFound = (current_node.st.sonambulo.f == final.f and current_node.st.sonambulo.c == final.c);
 	frontier.push_back(current_node);
 
 	while (!frontier.empty() and !SolutionFound){
@@ -305,10 +330,15 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 				// Generar hijo actSON_FORWARD
 				nodeN1 child_son_forward = current_node;
 				child_son_forward.st = applyN1(actSON_FORWARD, current_node.st, mapa);
-				if(explored.find(child_son_forward) == explored.end()){
+				if (child_son_forward.st.sonambulo.f == final.f and child_son_forward.st.sonambulo.c == final.c){
+					child_son_forward.secuencia.push_back(actSON_FORWARD);
+					current_node = child_son_forward;
+					SolutionFound = true;
+				} else if (explored.find(child_son_forward) == explored.end()){
 					child_son_forward.secuencia.push_back(actSON_FORWARD);
 					frontier.push_back(child_son_forward);
 				}
+
 				// Generar hijo actSON_TURN_SL
 				nodeN1 child_son_turnl = current_node;
 				child_son_turnl.st = applyN1(actSON_TURN_SL, current_node.st, mapa);
@@ -323,16 +353,16 @@ list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, 
 					child_son_turnr.secuencia.push_back(actSON_TURN_SR);
 					frontier.push_back(child_son_turnr);
 				}
-			} else {
+
+				current_node = child_son_forward;
+			}
+
+			if(!SolutionFound){
 
 				// Generar hijo actFORWARD
 				nodeN1 child_forward = current_node;
 				child_forward.st = applyN1(actFORWARD, current_node.st, mapa);
-				if (child_forward.st.jugador.f == final.f and child_forward.st.jugador.c == final.c){
-					child_forward.secuencia.push_back(actFORWARD);
-					current_node = child_forward;
-					SolutionFound = true;
-				} else if (explored.find(child_forward) == explored.end()){
+				if (explored.find(child_forward) == explored.end()){
 					child_forward.secuencia.push_back(actFORWARD);
 					frontier.push_back(child_forward);
 				}
@@ -517,6 +547,12 @@ Action ComportamientoJugador::think(Sensores sensores){
 			c_state.sonambulo.f = sensores.SONposF;
 			c_state.sonambulo.c = sensores.SONposC;
 			c_state.sonambulo.brujula = sensores.SONsentido;
+			c_stateN1.jugador.f = sensores.posF;
+			c_stateN1.jugador.c = sensores.posC;
+			c_stateN1.jugador.brujula = sensores.sentido;
+			c_stateN1.sonambulo.f = sensores.SONposF;
+			c_stateN1.sonambulo.c = sensores.SONposC;
+			c_stateN1.sonambulo.brujula = sensores.SONsentido;
 			goal.f = sensores.destinoF;
 			goal.c = sensores.destinoC;
 			switch (sensores.nivel){
@@ -535,6 +571,7 @@ Action ComportamientoJugador::think(Sensores sensores){
 			}
 			if (plan.size() > 0){
 				VisualizaPlan(c_state, plan);
+				VisualizaPlanN1(c_stateN1, plan);
 				hayPlan = true;
 			}
 

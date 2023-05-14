@@ -103,7 +103,7 @@ class ComportamientoJugador : public Comportamiento {
     int interact(Action accion, int valor);
     void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
     int gastosBateria(Action accion, Sensores sensores);
-    void VisualizaPlanSonambulo(const stateN1 &st, const list<Action> &plan);
+    void VisualizaPlanN1(const stateN1 &st, const list<Action> &plan);
 
   private:
     // Declarar Variables de Estado
