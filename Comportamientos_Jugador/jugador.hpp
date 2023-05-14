@@ -5,28 +5,36 @@
 
 #include <list>
 
-struct stateN0{
+struct stateN0
+{
   ubicacion jugador;
   ubicacion sonambulo;
 
-  bool operator== (const stateN0 &st) const{
-    if (jugador == st.jugador and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c){
+  bool operator==(const stateN0 &st) const
+  {
+    if (jugador == st.jugador and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c)
+    {
       return true;
-    } else {
+    }
+    else
+    {
       return false;
     }
   }
 };
 
-struct nodeN0{
+struct nodeN0
+{
   stateN0 st;
   list<Action> secuencia;
 
-  bool operator == (const nodeN0 &n) const{
+  bool operator==(const nodeN0 &n) const
+  {
     return (st == n.st);
   }
 
-  bool operator < (const nodeN0 &n) const{
+  bool operator<(const nodeN0 &n) const
+  {
     if (st.jugador.f < n.st.jugador.f)
       return true;
     else if (st.jugador.f == n.st.jugador.f and st.jugador.c < n.st.jugador.c)
@@ -38,113 +46,148 @@ struct nodeN0{
   }
 };
 
-struct stateN1{
+struct stateN1
+{
   ubicacion jugador;
   ubicacion sonambulo;
 
-  bool operator== (const stateN1 &st) const{
-    return (jugador.f == st.jugador.f and 
-    jugador.c == st.jugador.c and sonambulo.f == st.sonambulo.f and 
-    sonambulo.c == st.sonambulo.c and jugador.brujula == st.jugador.brujula and 
-    sonambulo.brujula == st.sonambulo.brujula);
+  bool operator==(const stateN1 &st) const
+  {
+    return (jugador.f == st.jugador.f and
+            jugador.c == st.jugador.c and sonambulo.f == st.sonambulo.f and
+            sonambulo.c == st.sonambulo.c and jugador.brujula == st.jugador.brujula and
+            sonambulo.brujula == st.sonambulo.brujula);
   }
 
-  bool operator<(const stateN1 &st) const{
-    return (jugador.f < st.jugador.f or 
-    (jugador.f == st.jugador.f and jugador.c < st.jugador.c) or 
-    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula < st.jugador.brujula) or 
-    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f < st.sonambulo.f) or 
-    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c < st.sonambulo.c) or 
-    (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c and sonambulo.brujula < st.sonambulo.brujula));
+  bool operator<(const stateN1 &st) const
+  {
+    return (jugador.f < st.jugador.f or
+            (jugador.f == st.jugador.f and jugador.c < st.jugador.c) or
+            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula < st.jugador.brujula) or
+            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f < st.sonambulo.f) or
+            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c < st.sonambulo.c) or
+            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c and sonambulo.brujula < st.sonambulo.brujula));
   }
 };
 
-struct nodeN1{
+struct nodeN1
+{
   stateN1 st;
   list<Action> secuencia;
 
-  bool operator == (const nodeN1 &n) const{
+  bool operator==(const nodeN1 &n) const
+  {
     return (st == n.st);
   }
 
-  bool operator < (const nodeN1 &n) const{
+  bool operator<(const nodeN1 &n) const
+  {
     if (st.jugador.f < n.st.jugador.f)
       return true;
     else if (st.jugador.f == n.st.jugador.f and st.jugador.c < n.st.jugador.c)
       return true;
     else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula < n.st.jugador.brujula)
       return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and 
-            st.sonambulo.f < n.st.sonambulo.f)
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and
+             st.sonambulo.f < n.st.sonambulo.f)
       return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and 
-            st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c < n.st.sonambulo.c)
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and
+             st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c < n.st.sonambulo.c)
       return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and 
-            st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c == n.st.sonambulo.c and st.sonambulo.brujula < n.st.sonambulo.brujula)
+    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and
+             st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c == n.st.sonambulo.c and st.sonambulo.brujula < n.st.sonambulo.brujula)
       return true;
     else
       return false;
   }
 };
 
-struct stateN2{
+struct stateN2
+{
   ubicacion jugador;
   ubicacion sonambulo;
 
-  int coste = 0;
   bool bikini = false;
   bool zapatillas = false;
 
-  bool operator()(const stateN2 &st, const stateN2 &st2) const{
-    if((st.jugador.f > st2.jugador.f) or (st.jugador.f == st2.jugador.f and st.jugador.c == st2.jugador.c and st.jugador.brujula > st2.jugador.brujula) or
-    (st.jugador.f == st2.jugador.f and st.jugador.c == st2.jugador.c and st.jugador.brujula == st2.jugador.brujula and st.bikini > st2.bikini) or
-    (st.jugador.f == st2.jugador.f and st.jugador.c == st2.jugador.c and st.jugador.brujula == st2.jugador.brujula and st.bikini == st2.bikini and st.zapatillas > st2.zapatillas))
+  bool operator==(const stateN2 &st) const
+  {
+    if (jugador == st.jugador and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+
+  bool operator<(const stateN2 &st) const
+  {
+    if ((jugador.f < st.jugador.f) or
+        (jugador.f == st.jugador.f and jugador.c < st.jugador.c) or
+        (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula < st.jugador.brujula) or
+        (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and bikini < st.bikini) or
+        (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and bikini == st.bikini and zapatillas < st.zapatillas))
       return true;
     else
       return false;
   }
 };
 
-struct nodeN2{
+struct nodeN2
+{
   stateN2 st;
   list<Action> secuencia;
-  int distancia;
+  int coste = 0;
 
-  bool operator()(const nodeN2 &n, const nodeN2 &n2) const{
-    return (n.distancia > n2.distancia);
+  bool operator==(const nodeN2 &n) const
+  {
+    return (st == n.st);
+  }
+
+  bool operator<(const nodeN2 &n) const
+  {
+    return coste > n.coste;
   }
 };
 
-class ComportamientoJugador : public Comportamiento {
-  public:
-    ComportamientoJugador(unsigned int size) : Comportamiento(size) {
-      // Inicializar Variables de Estado
-    }
-    ComportamientoJugador(std::vector< std::vector< unsigned char> > mapaR) : Comportamiento(mapaR) {
-      // Inicializar Variables de Estado
-      hayPlan = false;
-      zapatillas = false;
-      bikini = false;
-    }
-    ComportamientoJugador(const ComportamientoJugador & comport) : Comportamiento(comport){}
-    ~ComportamientoJugador(){}
+class ComportamientoJugador : public Comportamiento
+{
+public:
+  ComportamientoJugador(unsigned int size) : Comportamiento(size)
+  {
+    // Inicializar Variables de Estado
+  }
+  ComportamientoJugador(std::vector<std::vector<unsigned char>> mapaR) : Comportamiento(mapaR)
+  {
+    // Inicializar Variables de Estado
+    hayPlan = false;
+    zapatillas = false;
+    bikini = false;
+  }
+  ComportamientoJugador(const ComportamientoJugador &comport) : Comportamiento(comport) {}
+  ~ComportamientoJugador() {}
 
-    Action think(Sensores sensores);
-    int interact(Action accion, int valor);
-    void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
-    int gastosBateria(const stateN2 &st, Action accion);
-    void VisualizaPlanN1(const stateN1 &st, const list<Action> &plan);
+  Action think(Sensores sensores);
+  int interact(Action accion, int valor);
+  void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
+  void VisualizaPlan(const stateN1 &st, const list<Action> &plan);
+  void VisualizaPlan(const stateN2 &st, const list<Action> &plan);
+  void cogeObjeto(const stateN2 &st);
+  int gastosBateria(const stateN2 &st, Action accion);
+  list<Action> CostoUniforme(const stateN2 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa);
 
-  private:
-    // Declarar Variables de Estado
-    list<Action> plan; //Almacena el plan en ejecución
-    bool hayPlan; //Si verdad indica que se está siguiendo un plan.
-    stateN0 c_state;
-    ubicacion goal;
-    bool zapatillas;
-    bool bikini;
-    stateN1 c_stateN1;
+private:
+  // Declarar Variables de Estado
+  list<Action> plan; // Almacena el plan en ejecución
+  bool hayPlan;      // Si verdad indica que se está siguiendo un plan.
+  stateN0 c_state;
+  ubicacion goal;
+  bool zapatillas;
+  bool bikini;
+  stateN1 c_stateN1;
+  stateN2 c_stateN2;
 };
 
 #endif
