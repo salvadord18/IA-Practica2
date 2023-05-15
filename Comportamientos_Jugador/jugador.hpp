@@ -112,7 +112,10 @@ struct stateN2
 
   bool operator==(const stateN2 &st) const
   {
-    if (jugador == st.jugador and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c)
+    if (jugador.f == st.jugador.f and
+            jugador.c == st.jugador.c and sonambulo.f == st.sonambulo.f and
+            sonambulo.c == st.sonambulo.c and jugador.brujula == st.jugador.brujula and
+            sonambulo.brujula == st.sonambulo.brujula)
     {
       return true;
     }
@@ -139,7 +142,7 @@ struct nodeN2
 {
   stateN2 st;
   list<Action> secuencia;
-  int coste = 0;
+  int coste;
 
   bool operator==(const nodeN2 &n) const
   {
@@ -174,7 +177,7 @@ public:
   void VisualizaPlan(const stateN0 &st, const list<Action> &plan);
   void VisualizaPlan(const stateN1 &st, const list<Action> &plan);
   void VisualizaPlan(const stateN2 &st, const list<Action> &plan);
-  void cogeObjeto(const stateN2 &st);
+  void cogeObjeto(stateN2 &st);
   int gastosBateria(const stateN2 &st, Action accion);
   list<Action> CostoUniforme(const stateN2 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa);
 

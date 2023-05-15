@@ -545,19 +545,21 @@ void ComportamientoJugador::VisualizaPlan(const stateN2 &st, const list<Action> 
 	}
 }
 
-void ComportamientoJugador::cogeObjeto(const stateN2 &st){
+void ComportamientoJugador::cogeObjeto(stateN2 &st)
+{
 	int f = st.jugador.f;
 	int c = st.jugador.c;
 	char casilla = mapaResultado[f][c];
-	switch(casilla){
-		case 'K':
-			zapatillas = false;
-			bikini = true;
-			break;
-		case 'D':
-			bikini = false;
-			zapatillas = true;
-			break;
+	switch (casilla)
+	{
+	case 'K':
+		st.zapatillas = false;
+		st.bikini = true;
+		break;
+	case 'D':
+		st.bikini = false;
+		st.zapatillas = true;
+		break;
 	}
 }
 
@@ -603,7 +605,7 @@ int ComportamientoJugador::gastosBateria(const stateN2 &st, Action accion)
 		}
 		break;
 
-	case actTURN_L or actTURN_R:
+	case actTURN_L:
 		switch (casilla)
 		{
 		case 'A':
@@ -632,25 +634,53 @@ int ComportamientoJugador::gastosBateria(const stateN2 &st, Action accion)
 		default:
 			coste = 1;
 			break;
+		case actTURN_R:
+			switch (casilla)
+			{
+			case 'A':
+				if (st.bikini)
+				{
+					coste = 5;
+				}
+				else
+				{
+					coste = 25;
+				}
+				break;
+			case 'B':
+				if (st.zapatillas)
+				{
+					coste = 1;
+				}
+				else
+				{
+					coste = 5;
+				}
+				break;
+			case 'T':
+				coste = 2;
+				break;
+			default:
+				coste = 1;
+				break;
+			}
 		}
-		break;
+		return coste;
 	}
-	return coste;
 }
 
 list<Action> ComportamientoJugador::CostoUniforme(const stateN2 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa)
 {
 
 	nodeN2 current_node;
+	current_node.coste = 0;
 	priority_queue<nodeN2> frontier;
-	set<nodeN2> explored;
+	set<stateN2> explored;
 	list<Action> plan;
 	current_node.st = inicio;
 	current_node.secuencia.empty();
 
-	current_node.st.bikini = false;
-	current_node.st.zapatillas = false;
-	current_node.coste = gastosBateria(current_node.st, actIDLE);
+	cogeObjeto(current_node.st);
 	bool SolutionFound = (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c);
 	frontier.push(current_node);
 
@@ -658,47 +688,47 @@ list<Action> ComportamientoJugador::CostoUniforme(const stateN2 &inicio, const u
 	{
 		current_node = frontier.top();
 		frontier.pop();
-		explored.insert(current_node);
-
-		if (explored.find(current_node) == explored.end())
+		if (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c)
 		{
-			// Generar hijo actFORWARD
-			nodeN2 child_forward = current_node;
-			child_forward.st = apply(actFORWARD, current_node.st, mapa);
-			if (child_forward.st.jugador.f == final.f and child_forward.st.jugador.c == final.c)
-			{
-				child_forward.secuencia.push_back(actFORWARD);
-				current_node = child_forward;
-				SolutionFound = true;
-			}
-			else if (explored.find(child_forward) == explored.end())
-			{
-				child_forward.secuencia.push_back(actFORWARD);
-				child_forward.coste = current_node.coste + gastosBateria(current_node.st, actFORWARD);
-				cogeObjeto(child_forward.st);
-				frontier.push(child_forward);
-			}
+
+			SolutionFound = true;
+		}
+
+		if (explored.find(current_node.st) == explored.end())
+		{
+			explored.insert(current_node.st);
+
 
 			if (!SolutionFound)
 			{
+				// Generar hijo actFORWARD
+				nodeN2 child_forward = current_node;
+				child_forward.st = apply(actFORWARD, current_node.st, mapa);
+				if (explored.find(child_forward.st) == explored.end())
+				{
+					child_forward.secuencia.push_back(actFORWARD);
+					child_forward.coste = current_node.coste + gastosBateria(current_node.st, actFORWARD);
+					cogeObjeto(child_forward.st);
+					frontier.push(child_forward);
+				}
 				// Generar hijo actTURN_L
 				nodeN2 child_turnl = current_node;
 				child_turnl.st = apply(actTURN_L, current_node.st, mapa);
-				if (explored.find(child_turnl) == explored.end())
+				if (explored.find(child_turnl.st) == explored.end())
 				{
 					child_turnl.secuencia.push_back(actTURN_L);
 					child_turnl.coste = current_node.coste + gastosBateria(current_node.st, actTURN_L);
-					cogeObjeto(child_forward.st);
+					cogeObjeto(child_turnl.st);
 					frontier.push(child_turnl);
 				}
 				// Generar hijo actTURN_R
 				nodeN2 child_turnr = current_node;
 				child_turnr.st = apply(actTURN_R, current_node.st, mapa);
-				if (explored.find(child_turnr) == explored.end())
+				if (explored.find(child_turnr.st) == explored.end())
 				{
 					child_turnr.secuencia.push_back(actTURN_R);
 					child_turnr.coste = current_node.coste + gastosBateria(current_node.st, actTURN_R);
-					cogeObjeto(child_forward.st);
+					cogeObjeto(child_turnr.st);
 					frontier.push(child_turnr);
 				}
 			}
@@ -765,7 +795,6 @@ Action ComportamientoJugador::think(Sensores sensores)
 				VisualizaPlan(c_state, plan);
 				hayPlan = true;
 			}
-
 		}
 		if (hayPlan and plan.size() > 0)
 		{
