@@ -775,6 +775,149 @@ stateN3 apply(const Action &a, const stateN3 &st, const vector<vector<unsigned c
 	return st_result;
 }
 
+void ComportamientoJugador::VisualizaPlan(const stateN3 &st, const list<Action> &plan)
+{
+	AnularMatriz(mapaConPlan);
+	stateN3 cst = st;
+
+	auto it = plan.begin();
+	while (it != plan.end())
+	{
+		switch (*it)
+		{
+		case actFORWARD:
+			cst.jugador = NextCasilla(cst.jugador);
+			mapaConPlan[cst.jugador.f][cst.jugador.c] = 1;
+			break;
+		case actTURN_R:
+			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 2) % 8);
+			break;
+		case actTURN_L:
+			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 6) % 8);
+			break;
+		case actSON_FORWARD:
+			cst.sonambulo = NextCasilla(cst.sonambulo);
+			mapaConPlan[cst.sonambulo.f][cst.sonambulo.c] = 2;
+			break;
+		case actSON_TURN_SR:
+			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 1) % 8);
+			break;
+		case actSON_TURN_SL:
+			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 7) % 8);
+			break;
+		}
+		it++;
+	}
+}
+
+bool miraSonambulo(const stateN3 &st)
+{
+	ubicacion jugador = st.jugador;
+	ubicacion sonambulo = st.sonambulo;
+	stateN3 cst = st;
+
+	Orientacion orientacionJugador = jugador.brujula;
+	int fil = jugador.f;
+	int col = jugador.c;
+
+	bool miraSonambulo = false;
+
+	switch (orientacionJugador)
+	{
+	case norte:
+		if ((sonambulo.c == col) and ((fil - sonambulo.f) <= 3) and ((fil - sonambulo.f) > 0))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.c == col - 1) or (sonambulo.c == col + 1)) and ((fil - sonambulo.f) <= 3) and ((fil - sonambulo.f) >= 1))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.c == col - 2) or (sonambulo.c == col + 2)) and ((fil - sonambulo.f) <= 3) and ((fil - sonambulo.f) >= 2))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.c == col - 3) or (sonambulo.c == col + 3)) and ((fil - sonambulo.f) == 3))
+		{
+			miraSonambulo = true;
+		}
+		else
+		{
+			miraSonambulo = false;
+		}
+		break;
+	case este:
+		if ((sonambulo.f == fil) and ((sonambulo.c - col) <= 3) and ((sonambulo.c - col) > 0))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.f == fil - 1) or (sonambulo.f == fil + 1)) and ((sonambulo.c - col) <= 3) and ((sonambulo.c - col) >= 1))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.f == fil - 2) or (sonambulo.f == fil + 2)) and ((sonambulo.c - col) <= 3) and ((sonambulo.c - col) >= 2))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.f == fil - 3) or (sonambulo.f == fil + 3)) and ((sonambulo.c - col) == 3))
+		{
+			miraSonambulo = true;
+		}
+		else
+		{
+			miraSonambulo = false;
+		}
+		break;
+	case sur:
+		if ((sonambulo.c == col) and ((sonambulo.f - fil) <= 3) and ((sonambulo.f - fil) > 0))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.c == col - 1) or (sonambulo.c == col + 1)) and ((sonambulo.f - fil) <= 3) and ((sonambulo.f - fil) >= 1))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.c == col - 2) or (sonambulo.c == col + 2)) and ((sonambulo.f - fil) <= 3) and ((sonambulo.f - fil) >= 2))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.c == col - 3) or (sonambulo.c == col + 3)) and ((sonambulo.f - fil) == 3))
+		{
+			miraSonambulo = true;
+		}
+		else
+		{
+			miraSonambulo = false;
+		}
+		break;
+	case oeste:
+		if ((sonambulo.f == fil) and ((col - sonambulo.c) <= 3) and ((col - sonambulo.c) > 0))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.f == fil - 1) or (sonambulo.f == fil + 1)) and ((col - sonambulo.c) <= 3) and ((col - sonambulo.c) >= 1))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.f == fil - 2) or (sonambulo.f == fil + 2)) and ((col - sonambulo.c) <= 3) and ((col - sonambulo.c) >= 2))
+		{
+			miraSonambulo = true;
+		}
+		else if (((sonambulo.f == fil - 3) or (sonambulo.f == fil + 3)) and ((col - sonambulo.c) == 3))
+		{
+			miraSonambulo = true;
+		}
+		else
+		{
+			miraSonambulo = false;
+		}
+		break;
+	default:
+		break;
+	}
+	return miraSonambulo;
+}
+
 void ComportamientoJugador::cogeObjeto(stateN3 &st)
 {
 	int f = st.jugador.f;
@@ -912,8 +1055,100 @@ int ComportamientoJugador::gastosBateria(stateN3 &st, Action accion)
 			coste = 1;
 			break;
 		}
+	case actSON_FORWARD:
+		switch (casilla)
+		{
+		case 'A':
+			if (st.bikini_son)
+			{
+				coste = 10;
+			}
+			else
+			{
+				coste = 100;
+			}
+			break;
+		case 'B':
+			if (st.zapatillas_son)
+			{
+				coste = 15;
+			}
+			else
+			{
+				coste = 50;
+			}
+			break;
+		case 'T':
+			coste = 2;
+			break;
+		default:
+			coste = 1;
+			break;
+		}
+	case actSON_TURN_SL:
+		switch (casilla)
+		{
+		case 'A':
+			if (st.bikini_son)
+			{
+				coste = 2;
+			}
+			else
+			{
+				coste = 7;
+			}
+			break;
+		case 'B':
+			if (st.zapatillas_son)
+			{
+				coste = 1;
+			}
+			else
+			{
+				coste = 3;
+			}
+			break;
+		default:
+			coste = 1;
+			break;
+		}
+	case actSON_TURN_SR:
+		switch (casilla)
+		{
+		case 'A':
+			if (st.bikini_son)
+			{
+				coste = 2;
+			}
+			else
+			{
+				coste = 7;
+			}
+			break;
+		case 'B':
+			if (st.zapatillas_son)
+			{
+				coste = 1;
+			}
+			else
+			{
+				coste = 3;
+			}
+			break;
+		default:
+			coste = 1;
+			break;
+		}
 	}
 	return coste;
+}
+
+int heuristica(stateN3 &st, const ubicacion &final)
+{
+	int distancia = abs(st.jugador.f - final.f) + abs(st.jugador.c - final.c);
+	int distancia_son = max(abs(st.sonambulo.f - final.f), abs(st.sonambulo.c - final.c));
+	int h = distancia + distancia_son;
+	return h;
 }
 
 list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa)
@@ -921,6 +1156,7 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 
 	nodeN3 current_node;
 	current_node.coste = 0;
+	current_node.heuristica = heuristica(current_node.st, final);
 	priority_queue<nodeN3> frontier;
 	set<stateN3> explored;
 	list<Action> plan;
@@ -928,26 +1164,58 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 	current_node.secuencia.empty();
 
 	cogeObjeto(current_node.st);
-	bool SolutionFound = (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c);
+	bool SolutionFound = (current_node.st.sonambulo.f == final.f and current_node.st.sonambulo.c == final.c);
 	frontier.push(current_node);
 
 	while (!frontier.empty() and !SolutionFound)
 	{
-		current_node = frontier.top();
-		frontier.pop();
-		if (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c)
+
+		if (current_node.st.sonambulo.f == final.f and current_node.st.sonambulo.c == final.c)
 		{
 
 			SolutionFound = true;
 			break;
 		}
 
-		if (explored.find(current_node.st) == explored.end())
-		{
-			explored.insert(current_node.st);
-
 			if (!SolutionFound)
 			{
+				if (miraSonambulo(current_node.st))
+				{
+					// Generar hijo actSON_FORWARD
+					nodeN3 child_son_forward = current_node;
+					child_son_forward.st = apply(actSON_FORWARD, current_node.st, mapa);
+					if (child_son_forward.st.sonambulo.f == final.f and child_son_forward.st.sonambulo.c == final.c)
+					{
+						child_son_forward.secuencia.push_back(actSON_FORWARD);
+						child_son_forward.coste = current_node.coste + gastosBateria(current_node.st, actSON_FORWARD);
+						child_son_forward.heuristica = heuristica(child_son_forward.st, final);
+						cogeObjeto(child_son_forward.st);
+						frontier.push(child_son_forward);
+					}
+
+					// Generar hijo actSON_TURN_SL
+					nodeN3 child_son_turnl = current_node;
+					child_son_turnl.st = apply(actSON_TURN_SL, current_node.st, mapa);
+					if (explored.find(child_son_turnl.st) == explored.end())
+					{
+						child_son_turnl.secuencia.push_back(actSON_TURN_SL);
+						child_son_turnl.coste = current_node.coste + gastosBateria(current_node.st, actSON_TURN_SL);
+						child_son_turnl.heuristica = heuristica(child_son_turnl.st, final);
+						cogeObjeto(child_son_turnl.st);
+						frontier.push(child_son_turnl);
+					}
+					// Generar hijo actSON_TURN_SR
+					nodeN3 child_son_turnr = current_node;
+					child_son_turnr.st = apply(actSON_TURN_SR, current_node.st, mapa);
+					if (explored.find(child_son_turnr.st) == explored.end())
+					{
+						child_son_turnr.secuencia.push_back(actSON_TURN_SR);
+						child_son_turnr.coste = current_node.coste + gastosBateria(current_node.st, actSON_TURN_SR);
+						child_son_turnr.heuristica = heuristica(child_son_turnr.st, final);
+						cogeObjeto(child_son_turnr.st);
+						frontier.push(child_son_turnr);
+					}
+				}
 				// Generar hijo actFORWARD
 				nodeN3 child_forward = current_node;
 				child_forward.st = apply(actFORWARD, current_node.st, mapa);
@@ -955,6 +1223,7 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 				{
 					child_forward.secuencia.push_back(actFORWARD);
 					child_forward.coste = current_node.coste + gastosBateria(current_node.st, actFORWARD);
+					child_forward.heuristica = heuristica(child_forward.st, final);
 					cogeObjeto(child_forward.st);
 					frontier.push(child_forward);
 				}
@@ -965,6 +1234,7 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 				{
 					child_turnl.secuencia.push_back(actTURN_L);
 					child_turnl.coste = current_node.coste + gastosBateria(current_node.st, actTURN_L);
+					child_turnl.heuristica = heuristica(child_turnl.st, final);
 					cogeObjeto(child_turnl.st);
 					frontier.push(child_turnl);
 				}
@@ -975,8 +1245,22 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 				{
 					child_turnr.secuencia.push_back(actTURN_R);
 					child_turnr.coste = current_node.coste + gastosBateria(current_node.st, actTURN_R);
+					child_turnr.heuristica = heuristica(child_turnr.st, final);
 					cogeObjeto(child_turnr.st);
 					frontier.push(child_turnr);
+				}
+			}
+		
+
+		if (!SolutionFound and !frontier.empty())
+		{
+			current_node = frontier.top();
+			while (!frontier.empty() and explored.find(current_node.st) != explored.end())
+			{
+				frontier.pop();
+				if (!frontier.empty())
+				{
+					current_node = frontier.top();
 				}
 			}
 		}
@@ -1041,7 +1325,7 @@ Action ComportamientoJugador::think(Sensores sensores)
 				plan = CostoUniforme(c_stateN2, goal, mapaResultado);
 				break;
 			case 3: // Incluir aquí la llamada al algoritmo de busqueda para el nivel 3
-				cout << "Pendiente de implementar el nivel 1\n";
+				plan = AEstrella(c_stateN3, goal, mapaResultado);
 				break;
 			}
 			if (plan.size() > 0)

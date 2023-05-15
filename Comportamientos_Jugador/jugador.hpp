@@ -181,7 +181,9 @@ struct stateN3
             (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula < st.jugador.brujula) or
             (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f < st.sonambulo.f) or
             (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c < st.sonambulo.c) or
-            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c and sonambulo.brujula < st.sonambulo.brujula));
+            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c and sonambulo.brujula < st.sonambulo.brujula) or
+            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c and sonambulo.brujula == st.sonambulo.brujula and bikini_son < st.bikini_son) or
+            (jugador.f == st.jugador.f and jugador.c == st.jugador.c and jugador.brujula == st.jugador.brujula and sonambulo.f == st.sonambulo.f and sonambulo.c == st.sonambulo.c and sonambulo.brujula == st.sonambulo.brujula and bikini_son == st.bikini_son and zapatillas_son < st.zapatillas_son));
   }
 };
 
@@ -199,23 +201,7 @@ struct nodeN3
 
   bool operator<(const nodeN3 &n) const
   {
-    if (st.jugador.f < n.st.jugador.f)
-      return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c < n.st.jugador.c)
-      return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula < n.st.jugador.brujula)
-      return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and
-             st.sonambulo.f < n.st.sonambulo.f)
-      return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and
-             st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c < n.st.sonambulo.c)
-      return true;
-    else if (st.jugador.f == n.st.jugador.f and st.jugador.c == n.st.jugador.c and st.jugador.brujula == n.st.jugador.brujula and
-             st.sonambulo.f == n.st.sonambulo.f and st.sonambulo.c == n.st.sonambulo.c and st.sonambulo.brujula < n.st.sonambulo.brujula)
-      return true;
-    else
-      return false;
+    return ((coste + heuristica) > (n.coste + n.heuristica));
   }
 };
 
@@ -242,6 +228,7 @@ public:
   void cogeObjeto(stateN2 &st);
   int gastosBateria(stateN2 &st, Action accion);
   list<Action> CostoUniforme(const stateN2 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa);
+  void VisualizaPlan(const stateN3 &st, const list<Action> &plan);
   void cogeObjeto(stateN3 &st);
   int gastosBateria(stateN3 &st, Action accion);
   list<Action> AEstrella(const stateN3 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa);
