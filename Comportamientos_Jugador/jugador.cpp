@@ -346,41 +346,6 @@ stateN1 apply(const Action &a, const stateN1 &st, const vector<vector<unsigned c
 	return st_result;
 }
 
-void ComportamientoJugador::VisualizaPlan(const stateN1 &st, const list<Action> &plan)
-{
-	AnularMatriz(mapaConPlan);
-	stateN1 cst = st;
-
-	auto it = plan.begin();
-	while (it != plan.end())
-	{
-		switch (*it)
-		{
-		case actFORWARD:
-			cst.jugador = NextCasilla(cst.jugador);
-			mapaConPlan[cst.jugador.f][cst.jugador.c] = 1;
-			break;
-		case actTURN_R:
-			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 2) % 8);
-			break;
-		case actTURN_L:
-			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 6) % 8);
-			break;
-		case actSON_FORWARD:
-			cst.sonambulo = NextCasilla(cst.sonambulo);
-			mapaConPlan[cst.sonambulo.f][cst.sonambulo.c] = 2;
-			break;
-		case actSON_TURN_SR:
-			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 1) % 8);
-			break;
-		case actSON_TURN_SL:
-			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 7) % 8);
-			break;
-		}
-		it++;
-	}
-}
-
 list<Action> AnchuraConSonambulo(const stateN1 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa)
 {
 
@@ -508,41 +473,6 @@ stateN2 apply(const Action &a, const stateN2 &st, const vector<vector<unsigned c
 		break;
 	}
 	return st_result;
-}
-
-void ComportamientoJugador::VisualizaPlan(const stateN2 &st, const list<Action> &plan)
-{
-	AnularMatriz(mapaConPlan);
-	stateN2 cst = st;
-
-	auto it = plan.begin();
-	while (it != plan.end())
-	{
-		switch (*it)
-		{
-		case actFORWARD:
-			cst.jugador = NextCasilla(cst.jugador);
-			mapaConPlan[cst.jugador.f][cst.jugador.c] = 1;
-			break;
-		case actTURN_R:
-			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 2) % 8);
-			break;
-		case actTURN_L:
-			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 6) % 8);
-			break;
-		case actSON_FORWARD:
-			cst.sonambulo = NextCasilla(cst.sonambulo);
-			mapaConPlan[cst.sonambulo.f][cst.sonambulo.c] = 2;
-			break;
-		case actSON_TURN_SR:
-			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 1) % 8);
-			break;
-		case actSON_TURN_SL:
-			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 7) % 8);
-			break;
-		}
-		it++;
-	}
 }
 
 void ComportamientoJugador::cogeObjeto(stateN2 &st)
@@ -773,41 +703,6 @@ stateN3 apply(const Action &a, const stateN3 &st, const vector<vector<unsigned c
 	}
 
 	return st_result;
-}
-
-void ComportamientoJugador::VisualizaPlan(const stateN3 &st, const list<Action> &plan)
-{
-	AnularMatriz(mapaConPlan);
-	stateN3 cst = st;
-
-	auto it = plan.begin();
-	while (it != plan.end())
-	{
-		switch (*it)
-		{
-		case actFORWARD:
-			cst.jugador = NextCasilla(cst.jugador);
-			mapaConPlan[cst.jugador.f][cst.jugador.c] = 1;
-			break;
-		case actTURN_R:
-			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 2) % 8);
-			break;
-		case actTURN_L:
-			cst.jugador.brujula = (Orientacion)((cst.jugador.brujula + 6) % 8);
-			break;
-		case actSON_FORWARD:
-			cst.sonambulo = NextCasilla(cst.sonambulo);
-			mapaConPlan[cst.sonambulo.f][cst.sonambulo.c] = 2;
-			break;
-		case actSON_TURN_SR:
-			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 1) % 8);
-			break;
-		case actSON_TURN_SL:
-			cst.sonambulo.brujula = (Orientacion)((cst.sonambulo.brujula + 7) % 8);
-			break;
-		}
-		it++;
-	}
 }
 
 bool miraSonambulo(const stateN3 &st)
@@ -1188,7 +1083,7 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 						child_son_forward.coste = current_node.coste + gastosBateria(current_node.st, actSON_FORWARD);
 						child_son_forward.heuristica = heuristica(child_son_forward.st, final);
 						cogeObjeto(child_son_forward.st);
-						//frontier.push(child_son_forward);
+						frontier.push(child_son_forward);
 						SolutionFound = true;
 					} else if (explored.find(child_son_forward.st) == explored.end())
 					{
