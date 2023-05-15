@@ -192,7 +192,7 @@ struct nodeN3
   stateN3 st;
   list<Action> secuencia;
   int coste;
-  int heuristica;
+  int h;
 
   bool operator==(const nodeN3 &n) const
   {
@@ -201,7 +201,7 @@ struct nodeN3
 
   bool operator<(const nodeN3 &n) const
   {
-    return ((coste + heuristica) > (n.coste + n.heuristica));
+    return ((coste + h) > (n.coste + n.h));
   }
 };
 

@@ -1046,14 +1046,15 @@ int heuristica(stateN3 &st, const ubicacion &final)
 {
 	int distancia = abs(st.jugador.f - final.f) + abs(st.jugador.c - final.c);
 	int distancia_son = max(abs(st.sonambulo.f - final.f), abs(st.sonambulo.c - final.c));
-	int h = distancia + distancia_son;
-	return h;
+	int suma = distancia + distancia_son;
+	return suma;
 }
 
 list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa)
 {
 
 	nodeN3 current_node;
+	current_node.coste = 0;
 	priority_queue<nodeN3> frontier;
 	set<stateN3> explored;
 	list<Action> plan;
@@ -1061,8 +1062,6 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 	current_node.secuencia.empty();
 
 	cogeObjeto(current_node.st);
-	current_node.coste = gastosBateria(current_node.st, actIDLE);
-	current_node.heuristica = heuristica(current_node.st, final);
 	bool SolutionFound = (current_node.st.sonambulo.f == final.f and current_node.st.sonambulo.c == final.c);
 	frontier.push(current_node);
 
@@ -1070,54 +1069,55 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 	{
 		current_node = frontier.top();
 		frontier.pop();
-		explored.insert(current_node.st);
+		if (current_node.st.sonambulo.f == final.f and current_node.st.sonambulo.c == final.c)
+		{
 
-				if (miraSonambulo(current_node.st))
+			SolutionFound = true;
+			break;
+		}
+
+		if (explored.find(current_node.st) == explored.end())
+		{
+			explored.insert(current_node.st);
+			if(miraSonambulo(current_node.st)){
+				// Generar hijo actSON_FORWARD
+				nodeN3 child_son_forward = current_node;
+				child_son_forward.st = apply(actSON_FORWARD, current_node.st, mapa);
+				if (explored.find(child_son_forward.st) == explored.end())
 				{
-					// Generar hijo actSON_FORWARD
-					nodeN3 child_son_forward = current_node;
-					child_son_forward.st = apply(actSON_FORWARD, current_node.st, mapa);
-					if (child_son_forward.st.sonambulo.f == final.f and child_son_forward.st.sonambulo.c == final.c)
-					{
-						child_son_forward.secuencia.push_back(actSON_FORWARD);
-						child_son_forward.coste = current_node.coste + gastosBateria(current_node.st, actSON_FORWARD);
-						child_son_forward.heuristica = heuristica(child_son_forward.st, final);
-						cogeObjeto(child_son_forward.st);
-						frontier.push(child_son_forward);
-						SolutionFound = true;
-					} else if (explored.find(child_son_forward.st) == explored.end())
-					{
-						child_son_forward.secuencia.push_back(actSON_FORWARD);
-						child_son_forward.coste = current_node.coste + gastosBateria(current_node.st, actSON_FORWARD);
-						child_son_forward.heuristica = heuristica(child_son_forward.st, final);
-						cogeObjeto(child_son_forward.st);
-						frontier.push(child_son_forward);
-					}
-
-					// Generar hijo actSON_TURN_SL
-					nodeN3 child_son_turnl = current_node;
-					child_son_turnl.st = apply(actSON_TURN_SL, current_node.st, mapa);
-					if (explored.find(child_son_turnl.st) == explored.end())
-					{
-						child_son_turnl.secuencia.push_back(actSON_TURN_SL);
-						child_son_turnl.coste = current_node.coste + gastosBateria(current_node.st, actSON_TURN_SL);
-						child_son_turnl.heuristica = heuristica(child_son_turnl.st, final);
-						cogeObjeto(child_son_turnl.st);
-						frontier.push(child_son_turnl);
-					}
-					// Generar hijo actSON_TURN_SR
-					nodeN3 child_son_turnr = current_node;
-					child_son_turnr.st = apply(actSON_TURN_SR, current_node.st, mapa);
-					if (explored.find(child_son_turnr.st) == explored.end())
-					{
-						child_son_turnr.secuencia.push_back(actSON_TURN_SR);
-						child_son_turnr.coste = current_node.coste + gastosBateria(current_node.st, actSON_TURN_SR);
-						child_son_turnr.heuristica = heuristica(child_son_turnr.st, final);
-						cogeObjeto(child_son_turnr.st);
-						frontier.push(child_son_turnr);
-					}
+					child_son_forward.secuencia.push_back(actSON_FORWARD);
+					child_son_forward.coste = current_node.coste + gastosBateria(current_node.st, actSON_FORWARD);
+					child_son_forward.h = heuristica(child_son_forward.st, final);
+					cogeObjeto(child_son_forward.st);
+					frontier.push(child_son_forward);
 				}
-				if(!SolutionFound){
+				// Generar hijo actSON_TURN_SL
+				nodeN3 child_son_turnl = current_node;
+				child_son_turnl.st = apply(actSON_TURN_SL, current_node.st, mapa);
+				if (explored.find(child_son_turnl.st) == explored.end())
+				{
+					child_son_turnl.secuencia.push_back(actSON_TURN_SL);
+					child_son_turnl.coste = current_node.coste + gastosBateria(current_node.st, actTURN_L);
+					child_son_turnl.h = heuristica(child_son_turnl.st, final);
+					cogeObjeto(child_son_turnl.st);
+					frontier.push(child_son_turnl);
+				}
+				// Generar hijo actSON_TURN_SR
+				nodeN3 child_son_turnr = current_node;
+				child_son_turnr.st = apply(actSON_TURN_SR, current_node.st, mapa);
+				if (explored.find(child_son_turnr.st) == explored.end())
+				{
+					child_son_turnr.secuencia.push_back(actSON_TURN_SR);
+					child_son_turnr.coste = current_node.coste + gastosBateria(current_node.st, actSON_TURN_SR);
+					child_son_turnr.h = heuristica(child_son_turnr.st, final);
+					cogeObjeto(child_son_turnr.st);
+					frontier.push(child_son_turnr);
+				}
+			
+			}
+
+			if (!SolutionFound)
+			{
 				// Generar hijo actFORWARD
 				nodeN3 child_forward = current_node;
 				child_forward.st = apply(actFORWARD, current_node.st, mapa);
@@ -1125,7 +1125,7 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 				{
 					child_forward.secuencia.push_back(actFORWARD);
 					child_forward.coste = current_node.coste + gastosBateria(current_node.st, actFORWARD);
-					child_forward.heuristica = heuristica(child_forward.st, final);
+					child_forward.h = heuristica(child_forward.st, final);
 					cogeObjeto(child_forward.st);
 					frontier.push(child_forward);
 				}
@@ -1136,7 +1136,7 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 				{
 					child_turnl.secuencia.push_back(actTURN_L);
 					child_turnl.coste = current_node.coste + gastosBateria(current_node.st, actTURN_L);
-					child_turnl.heuristica = heuristica(child_turnl.st, final);
+					child_turnl.h = heuristica(child_turnl.st, final);
 					cogeObjeto(child_turnl.st);
 					frontier.push(child_turnl);
 				}
@@ -1147,22 +1147,9 @@ list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubica
 				{
 					child_turnr.secuencia.push_back(actTURN_R);
 					child_turnr.coste = current_node.coste + gastosBateria(current_node.st, actTURN_R);
-					child_turnr.heuristica = heuristica(child_turnr.st, final);
+					child_turnr.h = heuristica(child_turnr.st, final);
 					cogeObjeto(child_turnr.st);
 					frontier.push(child_turnr);
-				}
-			}
-		
-
-		if (!SolutionFound and !frontier.empty())
-		{
-			current_node = frontier.top();
-			while (!frontier.empty() and explored.find(current_node.st) != explored.end())
-			{
-				frontier.pop();
-				if (!frontier.empty())
-				{
-					current_node = frontier.top();
 				}
 			}
 		}
