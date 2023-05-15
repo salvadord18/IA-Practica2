@@ -563,7 +563,7 @@ void ComportamientoJugador::cogeObjeto(stateN2 &st)
 	}
 }
 
-int ComportamientoJugador::gastosBateria(const stateN2 &st, Action accion)
+int ComportamientoJugador::gastosBateria(stateN2 &st, Action accion)
 {
 	int sig_f = st.jugador.f;
 	int sig_c = st.jugador.c;
@@ -634,39 +634,39 @@ int ComportamientoJugador::gastosBateria(const stateN2 &st, Action accion)
 		default:
 			coste = 1;
 			break;
-		case actTURN_R:
-			switch (casilla)
-			{
-			case 'A':
-				if (st.bikini)
-				{
-					coste = 5;
-				}
-				else
-				{
-					coste = 25;
-				}
-				break;
-			case 'B':
-				if (st.zapatillas)
-				{
-					coste = 1;
-				}
-				else
-				{
-					coste = 5;
-				}
-				break;
-			case 'T':
-				coste = 2;
-				break;
-			default:
-				coste = 1;
-				break;
-			}
 		}
-		return coste;
+	case actTURN_R:
+		switch (casilla)
+		{
+		case 'A':
+			if (st.bikini)
+			{
+				coste = 5;
+			}
+			else
+			{
+				coste = 25;
+			}
+			break;
+		case 'B':
+			if (st.zapatillas)
+			{
+				coste = 1;
+			}
+			else
+			{
+				coste = 5;
+			}
+			break;
+		case 'T':
+			coste = 2;
+			break;
+		default:
+			coste = 1;
+			break;
+		}
 	}
+	return coste;
 }
 
 list<Action> ComportamientoJugador::CostoUniforme(const stateN2 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa)
@@ -692,12 +692,12 @@ list<Action> ComportamientoJugador::CostoUniforme(const stateN2 &inicio, const u
 		{
 
 			SolutionFound = true;
+			break;
 		}
 
 		if (explored.find(current_node.st) == explored.end())
 		{
 			explored.insert(current_node.st);
-
 
 			if (!SolutionFound)
 			{
@@ -723,6 +723,253 @@ list<Action> ComportamientoJugador::CostoUniforme(const stateN2 &inicio, const u
 				}
 				// Generar hijo actTURN_R
 				nodeN2 child_turnr = current_node;
+				child_turnr.st = apply(actTURN_R, current_node.st, mapa);
+				if (explored.find(child_turnr.st) == explored.end())
+				{
+					child_turnr.secuencia.push_back(actTURN_R);
+					child_turnr.coste = current_node.coste + gastosBateria(current_node.st, actTURN_R);
+					cogeObjeto(child_turnr.st);
+					frontier.push(child_turnr);
+				}
+			}
+		}
+	}
+	plan = current_node.secuencia;
+	return plan;
+}
+
+stateN3 apply(const Action &a, const stateN3 &st, const vector<vector<unsigned char>> &mapa)
+{
+	stateN3 st_result = st;
+	ubicacion sig_ubicacion;
+	switch (a)
+	{
+	case actFORWARD: // si proxima casilla es transitable y no está ocupada por el sonámbulo
+		sig_ubicacion = NextCasilla(st.jugador);
+		if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.sonambulo.f and sig_ubicacion.c == st.sonambulo.c))
+		{
+			st_result.jugador = sig_ubicacion;
+		}
+		break;
+	case actTURN_L:
+		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 6) % 8);
+		break;
+	case actTURN_R:
+		st_result.jugador.brujula = static_cast<Orientacion>((st_result.jugador.brujula + 2) % 8);
+		break;
+	case actSON_FORWARD:
+		sig_ubicacion = NextCasilla(st.sonambulo);
+		if (CasillaTransitable(sig_ubicacion, mapa) and !(sig_ubicacion.f == st.jugador.f and sig_ubicacion.c == st.jugador.c))
+		{
+			st_result.sonambulo = sig_ubicacion;
+		}
+		break;
+	case actSON_TURN_SL:
+		st_result.sonambulo.brujula = static_cast<Orientacion>((st_result.sonambulo.brujula + 7) % 8);
+		break;
+	case actSON_TURN_SR:
+		st_result.sonambulo.brujula = static_cast<Orientacion>((st_result.sonambulo.brujula + 1) % 8);
+		break;
+	}
+
+	return st_result;
+}
+
+void ComportamientoJugador::cogeObjeto(stateN3 &st)
+{
+	int f = st.jugador.f;
+	int c = st.jugador.c;
+	char casilla = mapaResultado[f][c];
+
+	int f_son = st.sonambulo.f;
+	int c_son = st.sonambulo.c;
+	char casilla_son = mapaResultado[f_son][c_son];
+
+	switch (casilla)
+	{
+	case 'K':
+		st.zapatillas = false;
+		st.bikini = true;
+		break;
+	case 'D':
+		st.bikini = false;
+		st.zapatillas = true;
+		break;
+	}
+
+	switch (casilla_son)
+	{
+	case 'K':
+		st.zapatillas_son = false;
+		st.bikini_son = true;
+		break;
+	case 'D':
+		st.zapatillas_son = false;
+		st.zapatillas = true;
+		break;
+	}
+}
+
+int ComportamientoJugador::gastosBateria(stateN3 &st, Action accion)
+{
+	int sig_f = st.jugador.f;
+	int sig_c = st.jugador.c;
+
+	int coste = 0;
+	char casilla = mapaResultado[sig_f][sig_c];
+
+	switch (accion)
+	{
+	case actFORWARD:
+		switch (casilla)
+		{
+		case 'A':
+			if (st.bikini)
+			{
+				coste = 10;
+			}
+			else
+			{
+				coste = 100;
+			}
+			break;
+		case 'B':
+			if (st.zapatillas)
+			{
+				coste = 15;
+			}
+			else
+			{
+				coste = 50;
+			}
+			break;
+		case 'T':
+			coste = 2;
+			break;
+		default:
+			coste = 1;
+			break;
+		}
+		break;
+
+	case actTURN_L:
+		switch (casilla)
+		{
+		case 'A':
+			if (st.bikini)
+			{
+				coste = 5;
+			}
+			else
+			{
+				coste = 25;
+			}
+			break;
+		case 'B':
+			if (st.zapatillas)
+			{
+				coste = 1;
+			}
+			else
+			{
+				coste = 5;
+			}
+			break;
+		case 'T':
+			coste = 2;
+			break;
+		default:
+			coste = 1;
+			break;
+		}
+	case actTURN_R:
+		switch (casilla)
+		{
+		case 'A':
+			if (st.bikini)
+			{
+				coste = 5;
+			}
+			else
+			{
+				coste = 25;
+			}
+			break;
+		case 'B':
+			if (st.zapatillas)
+			{
+				coste = 1;
+			}
+			else
+			{
+				coste = 5;
+			}
+			break;
+		case 'T':
+			coste = 2;
+			break;
+		default:
+			coste = 1;
+			break;
+		}
+	}
+	return coste;
+}
+
+list<Action> ComportamientoJugador::AEstrella(const stateN3 &inicio, const ubicacion &final, const vector<vector<unsigned char>> &mapa)
+{
+
+	nodeN3 current_node;
+	current_node.coste = 0;
+	priority_queue<nodeN3> frontier;
+	set<stateN3> explored;
+	list<Action> plan;
+	current_node.st = inicio;
+	current_node.secuencia.empty();
+
+	cogeObjeto(current_node.st);
+	bool SolutionFound = (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c);
+	frontier.push(current_node);
+
+	while (!frontier.empty() and !SolutionFound)
+	{
+		current_node = frontier.top();
+		frontier.pop();
+		if (current_node.st.jugador.f == final.f and current_node.st.jugador.c == final.c)
+		{
+
+			SolutionFound = true;
+			break;
+		}
+
+		if (explored.find(current_node.st) == explored.end())
+		{
+			explored.insert(current_node.st);
+
+			if (!SolutionFound)
+			{
+				// Generar hijo actFORWARD
+				nodeN3 child_forward = current_node;
+				child_forward.st = apply(actFORWARD, current_node.st, mapa);
+				if (explored.find(child_forward.st) == explored.end())
+				{
+					child_forward.secuencia.push_back(actFORWARD);
+					child_forward.coste = current_node.coste + gastosBateria(current_node.st, actFORWARD);
+					cogeObjeto(child_forward.st);
+					frontier.push(child_forward);
+				}
+				// Generar hijo actTURN_L
+				nodeN3 child_turnl = current_node;
+				child_turnl.st = apply(actTURN_L, current_node.st, mapa);
+				if (explored.find(child_turnl.st) == explored.end())
+				{
+					child_turnl.secuencia.push_back(actTURN_L);
+					child_turnl.coste = current_node.coste + gastosBateria(current_node.st, actTURN_L);
+					cogeObjeto(child_turnl.st);
+					frontier.push(child_turnl);
+				}
+				// Generar hijo actTURN_R
+				nodeN3 child_turnr = current_node;
 				child_turnr.st = apply(actTURN_R, current_node.st, mapa);
 				if (explored.find(child_turnr.st) == explored.end())
 				{
@@ -772,6 +1019,13 @@ Action ComportamientoJugador::think(Sensores sensores)
 			c_stateN2.sonambulo.f = sensores.SONposF;
 			c_stateN2.sonambulo.c = sensores.SONposC;
 			c_stateN2.sonambulo.brujula = sensores.SONsentido;
+
+			c_stateN3.jugador.f = sensores.posF;
+			c_stateN3.jugador.c = sensores.posC;
+			c_stateN3.jugador.brujula = sensores.sentido;
+			c_stateN3.sonambulo.f = sensores.SONposF;
+			c_stateN3.sonambulo.c = sensores.SONposC;
+			c_stateN3.sonambulo.brujula = sensores.SONsentido;
 
 			goal.f = sensores.destinoF;
 			goal.c = sensores.destinoC;
